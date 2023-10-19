@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: "Mabry";
+    src: url("/fonts/MabryPro-Regular.ttf");
+}

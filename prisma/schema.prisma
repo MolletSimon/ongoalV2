@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model Tournament {
+  code                String @id
+  name                String?
+  date                DateTime?
+  teams               Team[]
+  statusId            String
+  userId              String?
+  createdByUser       User? @relation(fields: [userId], references: [id])
+  status              StatusTournament @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  currentPhase        Int
+  phases              Phase[]
+}
+
+model Team {
+  id                  String @id @default(cuid())
+  tournamentId        String
+  tournament          Tournament @relation(fields: [tournamentId], references: [code], onDelete: Cascade)
+}
+
+model Phase {
+  id                  String @id @default(cuid())
+  name                String
+  tournamentId        String
+  isHomeAndAway       Boolean
+  numberTeamsByGroup  Int
+  numberQualifiedByGroup  Int
+  numberGroups        Int
+  typeId              String @unique
+  type                TypePhase @relation(fields: [typeId], references: [id])
+  tournament          Tournament @relation(fields: [tournamentId], references: [code], onDelete: Cascade)
+}
+
+model TypePhase {
+  id                  String @id
+  name                String
+  phase               Phase[]
+}
+
+model StatusTournament {
+  id                  String @id
+  description         String
+  tournament          Tournament[]
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  refresh_token_expires_in Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  bio           String? @db.Text
+  age           Int?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  tournaments   Tournament[]
+}
